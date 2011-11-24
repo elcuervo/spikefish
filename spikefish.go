@@ -2,27 +2,28 @@ package main
 
 import (
   "io/ioutil"
-  "exp/ssh"
+  . "exp/ssh"
 )
 
 func main() {
-  config := new(ssh.ServerConfig)
-  pemBytes, err := ioutil.ReadFile("id_rsa")
+  config := new(ServerConfig)
+  pemBytes, err := ioutil.ReadFile("fixtures/id_rsa_test")
   if err != nil {
-    panic("Failed to load private key")
+    panic("Failed to load private key" + err.Error())
   }
   err = config.SetRSAPrivateKey(pemBytes)
   if err != nil {
-    panic("Failed to parse private key")
+    panic("Failed to parse private key" + err.Error())
   }
-  listener, _ := ssh.Listen("tcp", "0.0.0.0:2022", config)
-  sConn, err := listener.Accept()
+  listener, _ := Listen("tcp", "0.0.0.0:2022", config)
+  conn, err := listener.Accept()
   if err != nil {
     panic("failed to accept incoming connection")
   }
-  err = sConn.Handshake(conn)
+
+  err = conn.Handshake()
   if err != nil {
-    panic("failed to handshake")
+    panic("failed to handshake" + err.Error())
   }
 
 }
