@@ -12,7 +12,7 @@ func passwordAuth(user, passwd string) bool {
 }
 
 func pubKeyAuth(user, algorithm string, pubkey []byte) bool {
-  fmt.Printf("user: %s, alg: %s, pub: %x", user, algorithm, pubkey)
+  fmt.Printf("user: %s, alg: %s, pub: %x", user, algorithm, string(pubkey))
   return true
 }
 
@@ -46,6 +46,33 @@ func main() {
   err = conn.Handshake()
   if err != nil {
     panic("failed to handshake" + err.Error())
+  }
+
+  for {
+    channel, err := conn.Accept()
+      if err != nil {
+        panic("error from Accept")
+      }
+
+    if channel.ChannelType() != "session" {
+      channel.Reject(ssh.UnknownChannelType, "unknown channel type")
+        return
+    }
+    channel.Accept()
+
+    shell := ssh.NewServerShell(channel, "> ")
+    go func() {
+      defer channel.Close()
+        for {
+          line, err := shell.ReadLine()
+            if err != nil {
+              break
+            }
+          println(line)
+        }
+      return
+    }()
+
   }
 
 }
